@@ -1,16 +1,23 @@
-import React from "react";
+import React, { useEffect } from "react";
 import List from "../List/List";
 import Badge from "../Badge/Badge";
+import axios from 'axios';
 
 import './AddList.scss';
 import style from '../../App.module.scss';
 import closeSvg from '../../assets/img/close.svg'
 
-
 const AddList = ({ addSvg, colors, onAddList }) => {
     const [visible, setVisible] = React.useState(false);
-    const [selectedColor, setSelectedColor] = React.useState(colors[0].id);
+    const [selectedColor, setSelectedColor] = React.useState(3);
     const [inputValue, setInputValue] = React.useState('');
+    const [isLoading, setIsLoading] = React.useState(false);
+
+    useEffect(() => {
+        if (Array.isArray(colors)) {
+            setSelectedColor(colors[0].id);
+        }
+    }, [colors]);
 
     const onClose = () => {
         setVisible(false);
@@ -22,13 +29,17 @@ const AddList = ({ addSvg, colors, onAddList }) => {
         if (!inputValue) {
             return alert('Enter list item name');
         }
-        const color = colors.filter(color => color.id === selectedColor)[0].name;
-        onAddList({
-            id: Math.random(),
-            name: inputValue,
-            color: color
-        });
-        onClose();
+        setIsLoading(true);
+        axios.post("http://localhost:3004/lists", { name: inputValue, colorId: selectedColor })
+            .then((response) => {
+                const color = colors.filter(color => color.id === selectedColor)[0].name;
+                const listObj = {...response.data, color: {name:color}};
+                onAddList(listObj);
+                onClose();
+            })
+            .finally(() => {
+                setIsLoading(false);
+            })
     }
 
     return (
@@ -69,7 +80,9 @@ const AddList = ({ addSvg, colors, onAddList }) => {
                             })
                         }
                     </div>
-                    <button className={style.button + " button__st"} onClick={addObjInList}>Добавить</button>
+                    <button className={style.button + " button__st"} onClick={addObjInList}>
+                        {isLoading ? 'Добавление...' : 'Добавить'}
+                    </button>
                 </div>
             }
         </div>
