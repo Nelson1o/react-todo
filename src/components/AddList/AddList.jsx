@@ -37,6 +37,9 @@ const AddList = ({ addSvg, colors, onAddList }) => {
                 onAddList(listObj);
                 onClose();
             })
+            .catch(() => {
+                alert('Ошибка при добавлении списка');
+            })
             .finally(() => {
                 setIsLoading(false);
             })
